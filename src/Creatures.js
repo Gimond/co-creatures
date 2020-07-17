@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import List from './List.js';
 import Card from './Card.js';
+import StatBlock from './StatBlock.js';
+import { apiCall } from './Helpers.js'
 
 class Creatures extends Component {
     constructor(props) {
@@ -13,30 +15,12 @@ class Creatures extends Component {
     }
 
     setCreature(id) {
-        var requestOptions = {
-            method: 'GET',
-            redirect: 'follow',
-            headers: new Headers({
-                'key': 'ylPI5rutd4MESz4l'
-            })
-        };
-
-        fetch("https://co-api.gimond.fr/api/v1/creatures?id="+id, requestOptions)
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    this.setState({
-                        isLoaded: true,
-                        creature: result
-                    });
-                },
-                (error) => {
-                    this.setState({
-                        isLoaded: true,
-                        error
-                    });
-                }
-            );
+        apiCall("https://co-api.gimond.fr/api/v1/creatures?id="+id).then((result) => {
+            this.setState({
+                isLoaded: true,
+                creature: result
+            });
+        });
     }
 
     render() {
@@ -46,10 +30,11 @@ class Creatures extends Component {
                     Créatures
                 </header>
                 <div className="col left">
-                    <List setCreature={this.setCreature.bind(this)} />
+                    <StatBlock setCreature={this.setCreature.bind(this)} />
+                    <List setCreature={this.setCreature.bind(this)} creature={this.state.creature} />
                 </div>
                 <div className="col right">
-                    <Card template={'modern'} creature={this.state.creature} />
+                    <Card template='modern' creature={this.state.creature} />
                 </div>
             </div>
         );

@@ -1,0 +1,274 @@
+
+import React, { Component } from 'react';
+import { Form, TextArea } from 'semantic-ui-react'
+
+class StatBlock extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            statblock: ''
+        };
+        this.handleStatBlockChange = this.handleStatBlockChange.bind(this);
+    }
+
+    render() {
+        return <Form><TextArea value={this.state.statblock} onKeyUp={this.handleStatBlockChange} /></Form>;
+    }
+    
+    buildRegexp(obj) {
+        var res = "\\b(";
+        var premier = true;
+        for (var field in obj) {
+            if (premier) {
+                res += field;
+                premier = false;
+            } else {
+                res += "|" + field;
+            }
+        }
+        res += "|créature)\\b"; //pour la version accentuée
+        return new RegExp(res, 'gi');
+    }
+
+    handleStatBlockChange(event) {
+        this.setState({statblock: event.target.value});
+        this.parseStatBlock();
+    }
+    
+    parseStatBlock() {
+        var maxAttack = 0;
+        var statsReconnues = {
+            for: 'pnj_for',
+            dex: 'pnj_dex',
+            con: 'pnj_con',
+            int: 'pnj_int',
+            sag: 'pnj_sag',
+            per: 'pnj_sag',
+            cha: 'pnj_cha',
+            creature: 'profil',
+            nc: 'niveau',
+            niveau: 'niveau',
+            taille: 'taille',
+            profil: 'profil',
+            init: 'pnj_init',
+            def: 'pnj_def',
+            pv: 'pnj_pv_max',
+            rd: 'pnj_rd',
+        };
+        var patternStats = this.buildRegexp(statsReconnues);
+        
+        if (this.state.statblock === '') {
+            return;
+        }
+        let stats = this.state.statblock.replace(/\r/g, '');
+        //On enlève les caractères images des dernières versions de COF
+        stats = stats.replace(/\ue1e9/g, ''); //DEF
+        stats = stats.replace(/♥/g, ''); //PV
+        stats = stats.replace(/\ue0bf/g, ''); //Attaque
+        // stats = stats.replace(/\, /g, ' ');
+        var rows = stats.split(/\n/);
+        var newAttrs = {};
+        var previousLine = ''; //Au cas d'attaque sur plusieurs lignes
+        var previousContainsDM = false;
+        var lastPrefix = ''; //Pour les suites d'attaque sur la ligne suivante
+        var firstLine = true; //si la première ligne ne correspond à rien, c'est le nom
+        rows.forEach(function(row) {
+            if (row === '') {
+                previousLine = '';
+                lastPrefix = '';
+                firstLine = false;
+                previousContainsDM = false;
+                return;
+            }
+            row = row.trim();
+            if (row.endsWith('DM')) {
+                previousLine += row + ' ';
+                previousContainsDM = true;
+            } else if (previousContainsDM || row.search(/\bDM\b/i) >= 0) { //Attaque
+                var currentRow = previousLine + row;
+                var nomAttaqueFin = currentRow.search(/\s(\+\d+|0\b|DM)/i);
+                var nomAttaque = currentRow.substring(0, nomAttaqueFin);
+                var portee = /\(\d+\s*m\)/i.exec(nomAttaque);
+                if (portee) {
+                    nomAttaque = nomAttaque.substring(0, portee.index).trim();
+                    portee = parseInt(portee[0].substring(1));
+                    if (isNaN(portee)) portee = 0;
+                }
+                currentRow = currentRow.substring(nomAttaqueFin).trim();
+                var bonusAtt = 0;
+                if (currentRow.startsWith('+')) {
+                    currentRow = currentRow.substring(1);
+                    bonusAtt = parseInt(currentRow);
+                    if (isNaN(bonusAtt)) {
+                        console.log("Sheet worker: bonus d'attaque incorrect " + row);
+                        previousLine = '';
+                        return;
+                    }
+                    currentRow = currentRow.substring(currentRow.search(/\D/));
+                } else if (currentRow.startsWith('0')) {
+                    currentRow = currentRow.substring(1).trim();
+                }
+                var index = currentRow.search(/\bDM\b/i);
+                var specAtt = currentRow.substring(0, index);
+                currentRow = currentRow.substring(index + 3).trim();
+                index = currentRow.search(/\s/);
+                if (index < 0) {
+                    index = currentRow.length;
+                }
+                var nbDe = 0;
+                var de = 4;
+                var bonusDM = 0;
+                var dmExpr = currentRow.substring(0, index);
+                var indexDe = dmExpr.search(/d/i);
+                if (indexDe < 0) {
+                    bonusDM = parseInt(dmExpr);
+                    if (isNaN(bonusDM)) {
+                        console.log("Impossible de trouver les DM dans " + row);
+                        previousLine += row + ' ';
+                        previousContainsDM = true;
+                        return;
+                    }
+                } else {
+                    nbDe = parseInt(dmExpr.substring(0, indexDe));
+                    dmExpr = dmExpr.substring(indexDe + 1);
+                    de = parseInt(dmExpr);
+                    if (isNaN(bonusDM) || isNaN(de)) {
+                        console.log("Impossible de trouver les DM dans " + row);
+                        previousLine += row + ' ';
+                        previousContainsDM = true;
+                        return;
+                    }
+                    var indexBonusDM = dmExpr.search(/(\+|-)/);
+                    if (indexBonusDM >= 0) {
+                        bonusDM = parseInt(dmExpr.substring(indexBonusDM));
+                        if (isNaN(bonusDM)) {
+                            bonusDM = 0;
+                        }
+                    } else if (index > 0 && index < currentRow.length - 1) {
+                        currentRow = currentRow.substring(index).trim();
+                        index = 0;
+                        if (currentRow.startsWith('+') || currentRow.startsWith('-')) {
+                            bonusDM = parseInt(currentRow);
+                            if (isNaN(bonusDM)) {
+                                bonusDM = 0;
+                            } else index = currentRow.search(/\s/);
+                        }
+                    }
+                }
+                if (index >= 0 && index < currentRow.length - 1) {
+                    specAtt += currentRow.substring(index).trim();
+                }
+                
+                var prefix = 'repeating_pnjatk_' + Math.random() + '_arme';
+                maxAttack++;
+                newAttrs[prefix + 'label'] = maxAttack;
+                newAttrs[prefix + 'nom'] = nomAttaque;
+                newAttrs[prefix + 'atk'] = bonusAtt;
+                newAttrs[prefix + 'dmnbde'] = nbDe;
+                newAttrs[prefix + 'dmde'] = de;
+                newAttrs[prefix + 'dm'] = bonusDM;
+                newAttrs[prefix + 'spec'] = specAtt;
+                if (portee) newAttrs[prefix + 'portee'] = portee;
+                lastPrefix = prefix;
+                previousContainsDM = false;
+                previousLine = '';
+            } else if (row.startsWith('+') && lastPrefix !== '') {
+                newAttrs[lastPrefix + 'spec'] += row;
+            } else { //Pas attaque
+                lastPrefix = '';
+                var lexemes = [];
+                var lastMatch;
+                var match = patternStats.exec(row);
+                while (match) {
+                    if (lastMatch) {
+                        lexemes.push({
+                            match: lastMatch,
+                            end: match.index
+                        });
+                    }
+                    lastMatch = match;
+                    match = patternStats.exec(row);
+                }
+                if (lastMatch) {
+                    lexemes.push({
+                        match: lastMatch,
+                        end: row.length
+                    });
+                }
+                if (lexemes.length === 0) {
+                    if (firstLine) {
+                        newAttrs.character_name = row;
+                    } else {
+                        console.log("La ligne " + row + " ne correspond à rien");
+                        previousLine = row + ' ';
+                    }
+                } else previousLine = '';
+                lexemes.forEach(function(l) {
+                    var lstat = l.match[0].toLowerCase();
+                    var lattr = statsReconnues[lstat];
+                    if (lattr === undefined && lstat === 'créature') lattr = statsReconnues.creature;
+                    if (lattr === undefined) {
+                        console.log("Erreur ! Pattern " + lstat + " non reconne. La ligne était " + l);
+                        return;
+                    }
+                    var valAttr = row.substring(l.match.index + lstat.length, l.end).trim();
+                    valAttr = valAttr.replace(/\)$/, '');
+                    if (lattr.search(/(for|dex|con|sag|int|cha)/) > 0) {
+                        if (valAttr.endsWith('*')) {
+                            valAttr = valAttr.substr(0, valAttr.length - 1);
+                            newAttrs[lattr + '_sup'] = 'on';
+                        }
+                        //cas où le statblock donne valeur/bonus
+                        var caracSlash = valAttr.indexOf('/');
+                        if (caracSlash > 0) {
+                            var caracVal = parseInt(valAttr);
+                            valAttr = parseInt(valAttr.substring(caracSlash + 1));
+                            switch (lattr) {
+                                case 'pnj_for':
+                                newAttrs.FORCE = caracVal;
+                                break;
+                                case 'pnj_dex':
+                                newAttrs.DEXTERITE = caracVal;
+                                break;
+                                case 'pnj_con':
+                                newAttrs.CONSTITUTION = caracVal;
+                                break;
+                                case 'pnj_int':
+                                newAttrs.INTELLIGENCE = caracVal;
+                                break;
+                                case 'pnj_sag':
+                                newAttrs.SAGESSE = caracVal;
+                                break;
+                                case 'pnj_cha':
+                                newAttrs.CHARISME = caracVal;
+                                break;
+                                default:
+                                console.log('attribut inconnu');
+                                break;
+                            }
+                        } else {
+                            valAttr = parseInt(valAttr);
+                        }
+                    } else if (lattr === 'pnj_pv_max') {
+                        //On met aussi les pv courants à jour
+                        var pvMax = parseInt(valAttr);
+                        //Cas où on note entre parenhèse les PV courants
+                        var caracParen = valAttr.indexOf('(');
+                        if (caracParen > 0) {
+                            var pvCourant = parseInt(valAttr.substring(caracParen + 1));
+                            newAttrs.pnj_pv = pvCourant;
+                            valAttr = valAttr.substring(0, caracParen).trim();
+                        } else newAttrs.pnj_pv = pvMax;
+                    }
+                    newAttrs[lattr] = valAttr;
+                });
+            }
+            firstLine = false;
+        });
+        newAttrs.max_attack_label = maxAttack;
+        
+        console.log(newAttrs);
+    }
+}
+
+export default StatBlock;

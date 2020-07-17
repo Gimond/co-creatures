@@ -53,9 +53,6 @@ class Card extends Component {
             this.ctx.drawImage(this.backgroundImgRef.current, 0, 0);
 
             // NAME
-            // this.ctx.font = "22px NexusSansOT";
-            // this.ctx.textAlign = "left";
-            // this.ctx.fillText(creature.nom, this.template.padding, global_y);
             global_y = this.wrapText(creature.nom, this.template.padding, global_y, 22, 22, this.template.width - this.template.padding * 2 - 120);
 
             // DETAILS
@@ -77,7 +74,6 @@ class Card extends Component {
             this.displayCarac('DEF', creature.DEF, this.template.width - 120, this.template.padding - 5, 'white', 'white');
             this.displayCarac('PV', creature.PV, this.template.width - 75, this.template.padding - 5, 'white', 'white');
             this.displayCarac('Init', creature.init, this.template.width - 30, this.template.padding - 5, 'white', 'white');
-            // this.displayCarac('Init', creature.init, this.template.width/4*3, global_y);
 
             // CARACS
             let index = 1;

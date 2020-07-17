@@ -10,8 +10,10 @@
 
 .App-header {
   background-color: #282c34;
-  height: 40px;
+  height: 80px;
+  line-height: 80px;
   color: white;
+  text-align: center;
 }
 .col {
   display: inline-block;
@@ -20,16 +22,17 @@
   padding: 20px;
 }
 .col.left {
-  height: calc(100vh - 40px);
-  max-width: 350px;
+  height: calc(100vh - 80px);
+  width: 350px;
   background: #eceeec;
   overflow: auto;
 }
-.col.left .table,
+.col.left .ui.collapsing.table,
 .col.left .input {
   width: 100%;
 }
 
 .col.right {
+  width: calc(100% - 350px);
   font-family: NexusSansOT, sans-serif;
 }
