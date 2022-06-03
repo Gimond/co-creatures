@@ -1,8 +1,8 @@
 export async function apiCall(api_url) {
-    const cache = localStorage.getItem(api_url);
-    if (cache) {
-        return JSON.parse(cache);
-    }
+    // const cache = localStorage.getItem(api_url);
+    // if (cache) {
+    //     return JSON.parse(cache);
+    // }
 
     var requestOptions = {
         method: 'GET',
@@ -23,6 +23,7 @@ export async function apiCall(api_url) {
             // au lieu d'utiliser un bloc catch(), pour ne pas passer à la trappe
             // des exceptions provenant de réels bugs du composant.
             (error) => {
+                console.log(error);
             }
         );
 }

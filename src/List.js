@@ -44,7 +44,7 @@ class List extends Component {
             } else {
                 let filtered = items.filter(creature => this.state.filter === '' || creature.nom.toLowerCase().includes(this.state.filter.toLowerCase()));
                 list = filtered.map(item => (
-                    <Table.Row key={item.id} onClick={this.handleCreatureClick.bind(this)} data-id={item.id} active={this.props.creature && this.props.creature[0].id === item.id} >
+                    <Table.Row key={item.id} onClick={this.handleCreatureClick.bind(this)} data-id={item.id} active={this.props.creature && this.props.creature.id === item.id} >
                         <Table.Cell>
                             {item.nc}
                         </Table.Cell>

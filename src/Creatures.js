@@ -16,10 +16,18 @@ class Creatures extends Component {
 
     setCreature(id) {
         apiCall("https://co-api.gimond.fr/api/v1/creatures?id="+id).then((result) => {
+            const creature = result[0];
             this.setState({
                 isLoaded: true,
-                creature: result
+                creature: creature
             });
+        });
+    }
+
+    setCreatureFromStatBlock(creature) {
+        this.setState({
+            isLoaded: true,
+            creature: creature
         });
     }
 
@@ -30,7 +38,7 @@ class Creatures extends Component {
                     Créatures
                 </header>
                 <div className="col left">
-                    <StatBlock setCreature={this.setCreature.bind(this)} />
+                    <StatBlock setCreatureFromStatBlock={this.setCreatureFromStatBlock.bind(this)} />
                     <List setCreature={this.setCreature.bind(this)} creature={this.state.creature} />
                 </div>
                 <div className="col right">

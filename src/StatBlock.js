@@ -1,20 +1,25 @@
-
-import React, { Component } from 'react';
-import { Form, TextArea } from 'semantic-ui-react'
+import React, {Component} from 'react';
+import {Form, TextArea} from 'semantic-ui-react'
 
 class StatBlock extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            statblock: ''
+            statblock: 'Mandefer - Cuirasse du dragon\n' +
+                'Boss rang 4\n' +
+                'NC 8\n' +
+                'FOR +4* DEX +0 CON +3\n' +
+                'INT +2 SAG +0 CHA +0\n' +
+                'DEF 25 PV 125 Init 10\n' +
+                'Hache (2 attaque) +14 DM 2d6+13'
         };
         this.handleStatBlockChange = this.handleStatBlockChange.bind(this);
     }
 
     render() {
-        return <Form><TextArea value={this.state.statblock} onKeyUp={this.handleStatBlockChange} /></Form>;
+        return <Form><TextArea value={this.state.statblock} onChange={this.handleStatBlockChange.bind(this)}/></Form>;
     }
-    
+
     buildRegexp(obj) {
         var res = "\\b(";
         var premier = true;
@@ -31,36 +36,40 @@ class StatBlock extends Component {
     }
 
     handleStatBlockChange(event) {
-        this.setState({statblock: event.target.value});
-        this.parseStatBlock();
+        const statBlock = event.target.value;
+        this.setState({statblock: statBlock});
+        let attributes = this.parseStatBlock(statBlock);
+        if (typeof this.props.setCreatureFromStatBlock === 'function') {
+            this.props.setCreatureFromStatBlock(attributes);
+        }
     }
-    
-    parseStatBlock() {
+
+    parseStatBlock(statBlock) {
         var maxAttack = 0;
         var statsReconnues = {
-            for: 'pnj_for',
-            dex: 'pnj_dex',
-            con: 'pnj_con',
-            int: 'pnj_int',
-            sag: 'pnj_sag',
-            per: 'pnj_sag',
-            cha: 'pnj_cha',
+            for: 'FOR',
+            dex: 'DEX',
+            con: 'CON',
+            int: 'INT',
+            sag: 'SAG',
+            per: 'SAG',
+            cha: 'CHA',
             creature: 'profil',
-            nc: 'niveau',
-            niveau: 'niveau',
+            nc: 'nc',
+            niveau: 'nc',
             taille: 'taille',
             profil: 'profil',
-            init: 'pnj_init',
-            def: 'pnj_def',
-            pv: 'pnj_pv_max',
-            rd: 'pnj_rd',
+            init: 'init',
+            def: 'DEF',
+            pv: 'PV',
+            rd: 'RD',
         };
         var patternStats = this.buildRegexp(statsReconnues);
-        
-        if (this.state.statblock === '') {
+
+        if (statBlock === '') {
             return;
         }
-        let stats = this.state.statblock.replace(/\r/g, '');
+        let stats = statBlock.replace(/\r/g, '');
         //On enlève les caractères images des dernières versions de COF
         stats = stats.replace(/\ue1e9/g, ''); //DEF
         stats = stats.replace(/♥/g, ''); //PV
@@ -72,7 +81,7 @@ class StatBlock extends Component {
         var previousContainsDM = false;
         var lastPrefix = ''; //Pour les suites d'attaque sur la ligne suivante
         var firstLine = true; //si la première ligne ne correspond à rien, c'est le nom
-        rows.forEach(function(row) {
+        rows.forEach(function (row) {
             if (row === '') {
                 previousLine = '';
                 lastPrefix = '';
@@ -158,17 +167,25 @@ class StatBlock extends Component {
                 if (index >= 0 && index < currentRow.length - 1) {
                     specAtt += currentRow.substring(index).trim();
                 }
-                
+
                 var prefix = 'repeating_pnjatk_' + Math.random() + '_arme';
                 maxAttack++;
-                newAttrs[prefix + 'label'] = maxAttack;
-                newAttrs[prefix + 'nom'] = nomAttaque;
-                newAttrs[prefix + 'atk'] = bonusAtt;
-                newAttrs[prefix + 'dmnbde'] = nbDe;
-                newAttrs[prefix + 'dmde'] = de;
-                newAttrs[prefix + 'dm'] = bonusDM;
-                newAttrs[prefix + 'spec'] = specAtt;
-                if (portee) newAttrs[prefix + 'portee'] = portee;
+                // newAttrs[prefix + 'label'] = maxAttack;
+                // newAttrs[prefix + 'nom'] = nomAttaque;
+                // newAttrs[prefix + 'atk'] = bonusAtt;
+                // newAttrs[prefix + 'dmnbde'] = nbDe;
+                // newAttrs[prefix + 'dmde'] = de;
+                // newAttrs[prefix + 'dm'] = bonusDM;
+                // newAttrs[prefix + 'spec'] = specAtt;
+                // if (portee) newAttrs[prefix + 'portee'] = portee;
+
+                if (!newAttrs.attaques) {
+                    newAttrs.attaques = [];
+                }
+                newAttrs.attaques.push(
+                    nomAttaque + ' +' + bonusAtt + ' DM ' + nbDe + 'd' + de + (bonusDM ? '+' + bonusDM : '') + ' ' + specAtt
+                );
+
                 lastPrefix = prefix;
                 previousContainsDM = false;
                 previousLine = '';
@@ -197,13 +214,13 @@ class StatBlock extends Component {
                 }
                 if (lexemes.length === 0) {
                     if (firstLine) {
-                        newAttrs.character_name = row;
+                        newAttrs.nom = row;
                     } else {
                         console.log("La ligne " + row + " ne correspond à rien");
                         previousLine = row + ' ';
                     }
                 } else previousLine = '';
-                lexemes.forEach(function(l) {
+                lexemes.forEach(function (l) {
                     var lstat = l.match[0].toLowerCase();
                     var lattr = statsReconnues[lstat];
                     if (lattr === undefined && lstat === 'créature') lattr = statsReconnues.creature;
@@ -213,42 +230,27 @@ class StatBlock extends Component {
                     }
                     var valAttr = row.substring(l.match.index + lstat.length, l.end).trim();
                     valAttr = valAttr.replace(/\)$/, '');
-                    if (lattr.search(/(for|dex|con|sag|int|cha)/) > 0) {
+                    console.log(lattr);
+                    if (lattr.search(/(FOR|DEX|CON|SAG|INT|CHA)/) !== -1) {
                         if (valAttr.endsWith('*')) {
                             valAttr = valAttr.substr(0, valAttr.length - 1);
-                            newAttrs[lattr + '_sup'] = 'on';
+                            if (!newAttrs.caracteristiques_superieures) {
+                                newAttrs.caracteristiques_superieures = [];
+                            }
+                            newAttrs.caracteristiques_superieures.push(lattr);
                         }
                         //cas où le statblock donne valeur/bonus
                         var caracSlash = valAttr.indexOf('/');
                         if (caracSlash > 0) {
-                            var caracVal = parseInt(valAttr);
+                            // var caracVal = parseInt(valAttr);
                             valAttr = parseInt(valAttr.substring(caracSlash + 1));
-                            switch (lattr) {
-                                case 'pnj_for':
-                                newAttrs.FORCE = caracVal;
-                                break;
-                                case 'pnj_dex':
-                                newAttrs.DEXTERITE = caracVal;
-                                break;
-                                case 'pnj_con':
-                                newAttrs.CONSTITUTION = caracVal;
-                                break;
-                                case 'pnj_int':
-                                newAttrs.INTELLIGENCE = caracVal;
-                                break;
-                                case 'pnj_sag':
-                                newAttrs.SAGESSE = caracVal;
-                                break;
-                                case 'pnj_cha':
-                                newAttrs.CHARISME = caracVal;
-                                break;
-                                default:
-                                console.log('attribut inconnu');
-                                break;
-                            }
                         } else {
                             valAttr = parseInt(valAttr);
                         }
+                        if (!newAttrs.caracteristiques) {
+                            newAttrs.caracteristiques = [];
+                        }
+                        newAttrs.caracteristiques[lattr] = valAttr;
                     } else if (lattr === 'pnj_pv_max') {
                         //On met aussi les pv courants à jour
                         var pvMax = parseInt(valAttr);
@@ -256,9 +258,9 @@ class StatBlock extends Component {
                         var caracParen = valAttr.indexOf('(');
                         if (caracParen > 0) {
                             var pvCourant = parseInt(valAttr.substring(caracParen + 1));
-                            newAttrs.pnj_pv = pvCourant;
+                            newAttrs.PV = pvCourant;
                             valAttr = valAttr.substring(0, caracParen).trim();
-                        } else newAttrs.pnj_pv = pvMax;
+                        } else newAttrs.PV = pvMax;
                     }
                     newAttrs[lattr] = valAttr;
                 });
@@ -266,8 +268,8 @@ class StatBlock extends Component {
             firstLine = false;
         });
         newAttrs.max_attack_label = maxAttack;
-        
-        console.log(newAttrs);
+
+        return newAttrs;
     }
 }
 

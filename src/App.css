@@ -31,6 +31,9 @@
 .col.left .input {
   width: 100%;
 }
+.col.left tr[data-id] {
+  cursor: pointer;
+}
 
 .col.right {
   width: calc(100% - 350px);
