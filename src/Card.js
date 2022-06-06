@@ -131,8 +131,11 @@ class Card extends Component {
             <div>
                 {/*<this.Dropzone />*/}
                 <canvas ref={this.canvasRef} width={this.template.width} height={this.template.height}/>
-                <img ref={this.backgroundImgRef} src={"images/background_" + this.template.name + ".jpg"} alt="" hidden/><br/>
-                <a href="https://www.freepik.com/free-photos-vectors/background">Background photo created by aopsan - www.freepik.com</a>
+                <img ref={this.backgroundImgRef} src={"images/background_" + this.template.name + ".jpg"} alt="" hidden/>
+                <footer className="colophon">
+                    <a href="https://www.freepik.com/free-photos-vectors/background">Background photo created by aopsan - www.freepik.com</a>
+                    <a href="https://game-icons.net/1x1/caro-asercion/goblin.html">Goblin icon by Caro Asercion</a>
+                </footer>
             </div>
         );
     }

@@ -37,12 +37,14 @@ class Creatures extends Component {
                 <header className="App-header">
                     Créatures
                 </header>
-                <div className="col left">
-                    <StatBlock setCreatureFromStatBlock={this.setCreatureFromStatBlock.bind(this)} />
-                    <List setCreature={this.setCreature.bind(this)} creature={this.state.creature} />
-                </div>
-                <div className="col right">
-                    <Card template='modern' creature={this.state.creature} />
+                <div className="content">
+                    <div className="col left">
+                        <StatBlock setCreatureFromStatBlock={this.setCreatureFromStatBlock.bind(this)} />
+                        <List setCreature={this.setCreature.bind(this)} creature={this.state.creature} />
+                    </div>
+                    <div className="col right">
+                        <Card template='modern' creature={this.state.creature} />
+                    </div>
                 </div>
             </div>
         );
