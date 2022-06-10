@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import {Form, TextArea} from 'semantic-ui-react'
 
 class StatBlock extends Component {
     constructor(props) {
@@ -17,7 +16,7 @@ class StatBlock extends Component {
     }
 
     render() {
-        return <Form><TextArea value={this.state.statblock} onChange={this.handleStatBlockChange.bind(this)}/></Form>;
+        return <form><textarea value={this.state.statblock} onChange={this.handleStatBlockChange.bind(this)}/></form>;
     }
 
     buildRegexp(obj) {

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Loader, Header, Table, Input } from 'semantic-ui-react'
+import { TextField, CircularProgress } from '@mui/material';
+import { Table, TableHead, TableCell, TableBody, TableRow } from '@mui/material';
 import { apiCall } from './Helpers.js'
 
 class List extends Component {
@@ -40,41 +41,38 @@ class List extends Component {
         } else {
             let list = '';
             if (!isLoaded) {
-                list = <Table.Row><Table.Cell colSpan='2'><Loader inverted /></Table.Cell></Table.Row>;
+                list = <TableRow><TableCell colSpan='2'><CircularProgress /></TableCell></TableRow>;
             } else {
                 let filtered = items.filter(creature => this.state.filter === '' || creature.nom.toLowerCase().includes(this.state.filter.toLowerCase()));
                 list = filtered.map(item => (
-                    <Table.Row key={item.id} onClick={this.handleCreatureClick.bind(this)} data-id={item.id} active={this.props.creature && this.props.creature.id === item.id} >
-                        <Table.Cell>
+                    <TableRow key={item.id} onClick={this.handleCreatureClick.bind(this)} data-id={item.id} active={this.props.creature && this.props.creature.id === item.id} >
+                        <TableCell>
                             {item.nc}
-                        </Table.Cell>
-                        <Table.Cell>
-                            <Header as='h4'>
-                                <Header.Content>
-                                    {item.nom}
-                                    <Header.Subheader>{item.milieu_naturel}</Header.Subheader>
-                                </Header.Content>
-                            </Header>
-                        </Table.Cell>
-                    </Table.Row>
+                        </TableCell>
+                        <TableCell>
+                            <h4>
+                                {item.nom}
+                                {item.milieu_naturel}
+                            </h4>
+                        </TableCell>
+                    </TableRow>
                 ));
             }
 
             return (
                 <div>
-                    <Input icon='search' placeholder='Rechercher...' value={this.state.filter} type="text" onChange={this.handleFilterInputChange.bind(this)} />
-                    <Loader inverted />
-                    <Table basic='very' celled collapsing selectable>
-                        <Table.Header>
-                            <Table.Row>
-                                <Table.HeaderCell width={2}>NC</Table.HeaderCell>
-                                <Table.HeaderCell>Nom</Table.HeaderCell>
-                            </Table.Row>
-                        </Table.Header>
+                    <TextField fullWidth icon='search' placeholder='Rechercher...' value={this.state.filter} type="text" onChange={this.handleFilterInputChange.bind(this)} />
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell width={2}>NC</TableCell>
+                                <TableCell>Nom</TableCell>
+                            </TableRow>
+                        </TableHead>
 
-                        <Table.Body>
+                        <TableBody>
                             {list}
-                        </Table.Body>
+                        </TableBody>
                     </Table>
                 </div>
             );

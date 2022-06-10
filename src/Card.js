@@ -1,5 +1,4 @@
-import React, {useCallback, Component} from 'react';
-import {useDropzone} from 'react-dropzone'
+import React, {Component} from 'react';
 
 class Card extends Component {
     constructor(props) {
@@ -112,11 +111,13 @@ class Card extends Component {
                 global_y += 30;
                 this.displayTitle('Capacités', this.template.padding, global_y);
                 global_y += 20;
-                var capacites = creature.capacites_speciales.split(/\r?\n/);
+                var capacites = creature.capacites_speciales;
+                capacites = capacites.split(/\r?\n/);
                 console.log(capacites);
-                for (let cap in capacites) {
-                    if (cap.length) {
-                        global_y = this.wrapText(cap, this.template.padding, global_y, this.template.textSize, 20);
+                for (let i in capacites) {
+                    if (capacites[i].length) {
+                        global_y = this.wrapText(capacites[i], this.template.padding, global_y, this.template.textSize, 20);
+                        global_y += 20;
                     }
                 }
             }
@@ -209,25 +210,6 @@ class Card extends Component {
 
     saveImg() {
         this.canvasRef.current.toDataURL();
-    }
-
-    Dropzone() {
-        const onDrop = useCallback(acceptedFiles => {
-            // Do something with the files
-            console.log(acceptedFiles);
-        }, []);
-        const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
-
-        return (
-            <div {...getRootProps()}>
-                <input {...getInputProps()} />
-                {
-                    isDragActive ?
-                        <p>Drop the files here ...</p> :
-                        <p>Drag 'n' drop some files here, or click to select files</p>
-                }
-            </div>
-        )
     }
 }
 
