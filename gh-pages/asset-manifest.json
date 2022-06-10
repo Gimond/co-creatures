@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/static/css/main.b0a7b93f.css",
+    "main.js": "/static/js/main.1485764b.js",
+    "static/media/NexusSansOT-Regular.ttf": "/static/media/NexusSansOT-Regular.4eb09079ed4e0a93927c.ttf",
+    "static/media/NexusSansOT-Regular.woff": "/static/media/NexusSansOT-Regular.199e16ee5382503e7446.woff",
+    "static/media/NexusSansOT-Regular.woff2": "/static/media/NexusSansOT-Regular.33945e89c45e8a5aa304.woff2",
+    "index.html": "/index.html",
+    "main.b0a7b93f.css.map": "/static/css/main.b0a7b93f.css.map",
+    "main.1485764b.js.map": "/static/js/main.1485764b.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.b0a7b93f.css",
+    "static/js/main.1485764b.js"
+  ]
+}

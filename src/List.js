@@ -50,10 +50,10 @@ class List extends Component {
                             {item.nc}
                         </TableCell>
                         <TableCell>
-                            <h4>
-                                {item.nom}
+                            {/*<h4>*/}
+                                {item.nom}<br />
                                 {item.milieu_naturel}
-                            </h4>
+                            {/*</h4>*/}
                         </TableCell>
                     </TableRow>
                 ));

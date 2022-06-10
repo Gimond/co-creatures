@@ -113,11 +113,10 @@ class Card extends Component {
                 global_y += 20;
                 var capacites = creature.capacites_speciales;
                 capacites = capacites.split(/\r?\n/);
-                console.log(capacites);
                 for (let i in capacites) {
                     if (capacites[i].length) {
                         global_y = this.wrapText(capacites[i], this.template.padding, global_y, this.template.textSize, 20);
-                        global_y += 20;
+                        global_y += 25;
                     }
                 }
             }
