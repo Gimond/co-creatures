@@ -2,7 +2,8 @@ import React, {Component} from 'react';
 import List from './List.js';
 import Card from './Card.js';
 import StatBlock from './StatBlock.js';
-import { apiCall } from './Helpers.js'
+import { apiCall } from './Helpers.js';
+import { ReactComponent as Logo } from './images/goblin.svg';
 
 class Creatures extends Component {
     constructor(props) {
@@ -35,7 +36,8 @@ class Creatures extends Component {
         return (
             <div>
                 <header className="App-header">
-                    Créatures
+                    <Logo />
+                    Créatures de Chroniques Oubliées
                 </header>
                 <div className="content">
                     <div className="col left">
